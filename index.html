@@ -1,0 +1,1308 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1" />
+  <title>Mente Alheia</title>
+  <style>
+    :root {
+      --bg: #0d0d0e;
+      --surface: #1a1a1c;
+      --surface-2: #232326;
+      --border: #2e2e32;
+      --text: #f4f1ec;
+      --muted: #8d8d94;
+      --orange: #ff6b1a;
+      --orange-soft: rgba(255, 107, 26, .15);
+      --danger: #ff4d4d;
+      --radius: 16px;
+    }
+
+    * { box-sizing: border-box; margin: 0; padding: 0; }
+
+    body {
+      min-height: 100vh;
+      background:
+        radial-gradient(900px 500px at 15% -10%, rgba(255,107,26,.10), transparent 60%),
+        radial-gradient(700px 400px at 100% 110%, rgba(255,107,26,.07), transparent 60%),
+        var(--bg);
+      color: var(--text);
+      font-family: "Segoe UI", system-ui, -apple-system, Roboto, sans-serif;
+      padding: 24px 16px 48px;
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+    }
+
+    header { text-align: center; margin-bottom: 28px; }
+    .logo {
+      font-family: Impact, "Arial Black", sans-serif;
+      font-size: clamp(2.2rem, 7vw, 3.6rem);
+      line-height: .95;
+      text-transform: uppercase;
+      letter-spacing: 1px;
+      transform: rotate(-2deg);
+    }
+    .logo span { display: block; color: var(--orange); }
+    .tagline { color: var(--muted); margin-top: 12px; font-size: .95rem; }
+
+    /* Layout: duas colunas no desktop, empilhado no celular */
+    .layout {
+      width: 100%;
+      max-width: 920px;
+      display: grid;
+      grid-template-columns: 1fr 1fr;
+      gap: 20px;
+    }
+    .layout > * { min-width: 0; }
+    @media (max-width: 760px) { .layout { grid-template-columns: minmax(0, 1fr); } }
+
+    .panel {
+      background: var(--surface);
+      border: 1px solid var(--border);
+      border-radius: 24px;
+      padding: 22px;
+      box-shadow: 0 20px 40px rgba(0,0,0,.35);
+    }
+    .panel h2 {
+      font-size: 1.05rem;
+      font-weight: 600;
+      text-align: center;
+      margin-bottom: 18px;
+    }
+
+    /* ---------- Cadastro ---------- */
+    .add-row { display: flex; gap: 8px; }
+    .add-row input {
+      flex: 1;
+      min-width: 0;
+      background: var(--surface-2);
+      border: 1px solid var(--border);
+      color: var(--text);
+      border-radius: 12px;
+      padding: 13px 14px;
+      font-size: 1rem;
+      outline: none;
+      transition: border-color .2s, box-shadow .2s;
+    }
+    .add-row input:focus {
+      border-color: var(--orange);
+      box-shadow: 0 0 0 3px var(--orange-soft);
+    }
+    .btn {
+      border: none;
+      cursor: pointer;
+      font-weight: 600;
+      font-size: 1rem;
+      border-radius: 999px;
+      padding: 14px 22px;
+      transition: transform .12s, filter .2s, opacity .2s;
+    }
+    .btn:active { transform: scale(.97); }
+    .btn:disabled { opacity: .45; cursor: not-allowed; }
+    .btn-primary { background: var(--orange); color: #fff; }
+    .btn-primary:hover:not(:disabled) { filter: brightness(1.1); }
+    .btn-add { border-radius: 12px; padding: 0 18px; }
+    .btn-ghost {
+      background: transparent;
+      color: var(--text);
+      border: 1px solid var(--border);
+    }
+    .btn-block { width: 100%; }
+
+    .error { color: var(--danger); font-size: .85rem; min-height: 1.2em; margin: 8px 4px 0; }
+
+    .counter {
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      color: var(--muted);
+      font-size: .85rem;
+      margin: 8px 4px 10px;
+    }
+    .counter strong {
+      background: var(--orange-soft);
+      color: var(--orange);
+      padding: 3px 12px;
+      border-radius: 999px;
+      font-size: .95rem;
+    }
+
+    .player-list {
+      list-style: none;
+      display: flex;
+      flex-direction: column;
+      gap: 8px;
+      max-height: 320px;
+      overflow-y: auto;
+      padding-right: 2px;
+    }
+    .player-list li {
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      background: var(--surface-2);
+      border: 1px solid var(--border);
+      border-radius: 12px;
+      padding: 12px 14px;
+      animation: pop .25s ease;
+    }
+    .player-list li.drawn .name { color: var(--muted); text-decoration: line-through; }
+    .player-list li.current { border-color: var(--orange); }
+    .player-list .name { word-break: break-word; }
+    .badge {
+      font-size: .7rem;
+      color: var(--orange);
+      margin-left: 8px;
+      text-transform: uppercase;
+      letter-spacing: .5px;
+    }
+    .remove {
+      background: none;
+      border: none;
+      color: var(--muted);
+      cursor: pointer;
+      padding: 4px;
+      display: grid;
+      place-items: center;
+      border-radius: 8px;
+      flex-shrink: 0;
+    }
+    .remove:hover { color: var(--danger); background: rgba(255,77,77,.1); }
+    .remove svg { width: 18px; height: 18px; }
+    .empty { text-align: center; color: var(--muted); padding: 22px 0; font-size: .9rem; }
+
+    @keyframes pop { from { opacity: 0; transform: translateY(6px) scale(.98); } to { opacity: 1; transform: none; } }
+
+    /* ---------- Sorteio ---------- */
+    .draw-panel { display: flex; flex-direction: column; align-items: center; }
+
+    .wheel {
+      position: relative;
+      width: min(280px, 72vw);
+      aspect-ratio: 1;
+      margin: 6px 0 22px;
+    }
+    .wheel svg { width: 100%; height: 100%; transform: rotate(-90deg); }
+    .wheel .track { fill: none; stroke: var(--surface-2); stroke-width: 10; }
+    .wheel .progress {
+      fill: none;
+      stroke: var(--orange);
+      stroke-width: 10;
+      stroke-linecap: round;
+      transition: stroke-dashoffset .6s ease;
+      filter: drop-shadow(0 0 8px rgba(255,107,26,.6));
+    }
+    .wheel.spinning .ring-spin { animation: spin 1s linear infinite; transform-origin: center; }
+    @keyframes spin { to { transform: rotate(360deg); } }
+
+    .pointer {
+      position: absolute;
+      top: -8px; left: 50%;
+      transform: translateX(-50%);
+      width: 0; height: 0;
+      border-left: 11px solid transparent;
+      border-right: 11px solid transparent;
+      border-top: 16px solid var(--orange);
+      filter: drop-shadow(0 0 6px rgba(255,107,26,.7));
+    }
+
+    .wheel-center {
+      position: absolute;
+      inset: 14%;
+      border-radius: 50%;
+      background: radial-gradient(circle at 50% 35%, #26262a, #121214);
+      border: 1px solid var(--border);
+      display: grid;
+      place-items: center;
+      text-align: center;
+      padding: 14px;
+      box-shadow: inset 0 0 30px rgba(0,0,0,.6);
+    }
+    .drawn-label { color: var(--muted); font-size: .75rem; letter-spacing: 1.5px; text-transform: uppercase; }
+    .drawn-name {
+      font-size: clamp(1.4rem, 5.5vw, 2rem);
+      font-weight: 800;
+      line-height: 1.1;
+      word-break: break-word;
+      margin-top: 6px;
+    }
+    .drawn-name.placeholder { color: var(--muted); font-weight: 500; font-size: 1.05rem; }
+    .drawn-name.reveal {
+      color: var(--orange);
+      text-shadow: 0 0 24px rgba(255,107,26,.55);
+      animation: reveal .5s cubic-bezier(.2,1.4,.4,1);
+    }
+    @keyframes reveal { from { transform: scale(.6); opacity: 0; } to { transform: scale(1); opacity: 1; } }
+
+    .status { width: 100%; text-align: center; color: var(--muted); font-size: .85rem; margin-bottom: 14px; }
+
+    .cycle-end {
+      width: 100%;
+      background: var(--orange-soft);
+      border: 1px solid var(--orange);
+      color: var(--text);
+      border-radius: 14px;
+      padding: 12px 14px;
+      font-size: .9rem;
+      text-align: center;
+      margin-bottom: 14px;
+      animation: pop .3s ease;
+    }
+    /* Tipo de pergunta sorteado (Normal / Dark) */
+    .qtype {
+      width: 100%;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      gap: 10px;
+      border-radius: 16px;
+      padding: 14px 16px;
+      margin-bottom: 14px;
+      font-weight: 800;
+      font-size: 1.1rem;
+      letter-spacing: .5px;
+      border: 1px solid var(--border);
+    }
+    .qtype small { font-weight: 600; font-size: .7rem; letter-spacing: 1.5px; text-transform: uppercase; opacity: .75; display: block; }
+    .qtype.normal { background: #dfe6d3; color: #1d2a12; border-color: #b9c6a5; }
+    .qtype.dark   { background: #1a0d0d; color: #ff6b6b; border-color: #ff4d4d; box-shadow: 0 0 22px rgba(255,77,77,.3); }
+    .qtype.reveal { animation: flip .5s cubic-bezier(.2,1.2,.4,1); }
+    .qtype.shuffling { background: var(--surface-2); color: var(--muted); }
+
+    /* Cronômetro */
+    .timer {
+      width: 100%;
+      background: var(--surface-2);
+      border: 1px solid var(--border);
+      border-radius: 18px;
+      padding: 16px;
+      margin-bottom: 14px;
+    }
+    .timer-head {
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      gap: 10px;
+      flex-wrap: wrap;
+      font-size: .85rem;
+      color: var(--muted);
+      margin-bottom: 12px;
+    }
+    .stepper { display: flex; align-items: center; gap: 6px; color: var(--text); }
+    .stepper button {
+      width: 32px; height: 32px;
+      border-radius: 50%;
+      border: 1px solid var(--border);
+      background: var(--surface);
+      color: var(--text);
+      font-size: 1.1rem;
+      cursor: pointer;
+    }
+    .stepper button:hover:not(:disabled) { border-color: var(--orange); color: var(--orange); }
+    .stepper input {
+      width: 62px;
+      text-align: center;
+      background: var(--surface);
+      border: 1px solid var(--border);
+      color: var(--text);
+      border-radius: 10px;
+      padding: 6px;
+      font-size: .95rem;
+      outline: none;
+      -moz-appearance: textfield;
+    }
+    .stepper input::-webkit-outer-spin-button,
+    .stepper input::-webkit-inner-spin-button { -webkit-appearance: none; margin: 0; }
+    .stepper input:focus { border-color: var(--orange); }
+    .stepper button:disabled, .stepper input:disabled, .chip:disabled { opacity: .4; cursor: not-allowed; }
+    .presets { display: flex; gap: 6px; flex-wrap: wrap; margin-bottom: 14px; }
+    .chip {
+      background: var(--surface);
+      border: 1px solid var(--border);
+      color: var(--text);
+      border-radius: 999px;
+      padding: 6px 12px;
+      font-size: .8rem;
+      cursor: pointer;
+    }
+    .chip.active { border-color: var(--orange); color: var(--orange); background: var(--orange-soft); }
+    .timer-face { position: relative; width: 150px; aspect-ratio: 1; margin: 0 auto 10px; }
+    .timer-face svg { width: 100%; height: 100%; transform: rotate(-90deg); }
+    .t-track { fill: none; stroke: var(--surface); stroke-width: 9; }
+    .t-progress {
+      fill: none;
+      stroke: var(--orange);
+      stroke-width: 9;
+      stroke-linecap: round;
+      filter: drop-shadow(0 0 6px rgba(255,107,26,.55));
+    }
+    .timer-time {
+      position: absolute; inset: 0;
+      display: grid; place-items: center;
+      font-size: 2.1rem;
+      font-weight: 700;
+      font-variant-numeric: tabular-nums;
+    }
+    .timer.low .t-progress { stroke: var(--danger); filter: drop-shadow(0 0 6px rgba(255,77,77,.6)); }
+    .timer.low .timer-time { color: var(--danger); }
+    .timer.done .timer-time { color: var(--danger); animation: blink .8s steps(2) infinite; }
+    @keyframes blink { 50% { opacity: .3; } }
+    .t-msg { text-align: center; color: var(--danger); font-weight: 700; margin-bottom: 10px; }
+    .timer-actions { display: flex; gap: 10px; }
+    .timer-actions .btn { flex: 1; padding: 12px; }
+
+
+    /* =================== TELAS (Home / Jogo) =================== */
+    .screen { width: 100%; display: flex; flex-direction: column; align-items: center; }
+
+    /* ---------- Tela inicial ---------- */
+    #homeScreen {
+      min-height: calc(100vh - 72px);
+      justify-content: center;
+      text-align: center;
+      position: relative;
+      overflow: hidden;
+      padding: 12px 0;
+    }
+    .home-deco { position: absolute; inset: 0; pointer-events: none; }
+    .home-deco span {
+      position: absolute;
+      font-family: Impact, "Arial Black", sans-serif;
+      color: var(--orange);
+      opacity: .85;
+      animation: floaty 5s ease-in-out infinite;
+    }
+    .home-deco .q1 { top: 6%;  left: 10%; font-size: 3rem;  transform: rotate(-14deg); }
+    .home-deco .q2 { top: 20%; right: 7%; font-size: 4rem;  transform: rotate(12deg); animation-delay: -2s; }
+    .home-deco .q3 { bottom: 10%; left: 14%; font-size: 2.2rem; color: var(--muted); opacity: .35; animation-delay: -3s; }
+    @keyframes floaty { 50% { translate: 0 -10px; } }
+
+    .home-logo {
+      position: relative;
+      font-family: Impact, "Arial Black", sans-serif;
+      text-transform: uppercase;
+      font-size: clamp(3.4rem, 15vw, 6.4rem);
+      line-height: .9;
+      letter-spacing: 1px;
+      transform: rotate(-3deg);
+      margin-bottom: 20px;
+      text-shadow: 0 10px 40px rgba(0,0,0,.5);
+    }
+    .home-logo span { display: block; color: var(--orange); text-shadow: 0 0 40px rgba(255,107,26,.35); }
+    .home-tagline { position: relative; color: var(--muted); font-size: 1.05rem; max-width: 300px; margin: 0 auto 34px; }
+    .home-actions { position: relative; width: min(320px, 86vw); display: flex; flex-direction: column; gap: 12px; }
+    .home-actions .btn { font-size: 1.1rem; padding: 17px 22px; }
+    .btn-play { box-shadow: 0 10px 30px rgba(255,107,26,.35); }
+    .home-foot { position: relative; margin-top: 30px; color: var(--muted); font-size: .8rem; opacity: .7; }
+
+    /* Botão de voltar (dentro do jogo) */
+    #gameScreen header { position: relative; width: 100%; max-width: 920px; padding-top: 34px; }
+    .back-btn {
+      position: absolute; top: 0; left: 0;
+      background: none; border: none; color: var(--muted);
+      font-size: .95rem; cursor: pointer; padding: 6px 4px;
+    }
+    .back-btn:hover { color: var(--orange); }
+    .sound-btn {
+      position: absolute; top: 0; right: 0;
+      background: var(--surface-2); border: 1px solid var(--border);
+      color: var(--text); border-radius: 999px;
+      font-size: .85rem; padding: 6px 12px; cursor: pointer;
+    }
+    .sound-btn:hover { border-color: var(--orange); }
+    .sound-btn.off { color: var(--muted); }
+
+    /* ---------- Manual "Como Jogar" ---------- */
+    .manual {
+      position: fixed; inset: 0; z-index: 50;
+      background: rgba(0,0,0,.72);
+      backdrop-filter: blur(4px);
+      display: flex; align-items: flex-end; justify-content: center;
+      animation: fadeIn .2s ease;
+    }
+    .manual.hidden { display: none; }
+    @keyframes fadeIn { from { opacity: 0; } }
+    @keyframes slideUp { from { transform: translateY(40px); opacity: 0; } }
+    .manual-sheet {
+      width: 100%; max-width: 620px; max-height: 92vh;
+      background: var(--surface);
+      border: 1px solid var(--border);
+      border-radius: 26px 26px 0 0;
+      display: flex; flex-direction: column;
+      animation: slideUp .3s cubic-bezier(.2,1,.4,1);
+    }
+    @media (min-width: 700px) {
+      .manual { align-items: center; }
+      .manual-sheet { border-radius: 26px; max-height: 86vh; }
+    }
+    .manual-head {
+      display: flex; align-items: center; justify-content: space-between;
+      padding: 18px 22px; border-bottom: 1px solid var(--border);
+    }
+    .manual-head h2 { font-size: 1.2rem; }
+    .manual-close {
+      width: 36px; height: 36px; border-radius: 50%;
+      background: var(--surface-2); border: 1px solid var(--border);
+      color: var(--text); font-size: 1.1rem; cursor: pointer;
+    }
+    .manual-close:hover { border-color: var(--orange); color: var(--orange); }
+    .manual-body { overflow-y: auto; padding: 18px 22px 26px; display: flex; flex-direction: column; gap: 14px; }
+    .m-card { background: var(--surface-2); border: 1px solid var(--border); border-radius: 18px; padding: 16px 18px; }
+    .m-card h3 { font-size: 1rem; color: var(--orange); margin-bottom: 8px; display: flex; align-items: center; gap: 8px; }
+    .m-card p { color: #d9d6d0; font-size: .95rem; line-height: 1.5; }
+    .m-card p + p { margin-top: 8px; }
+    .m-steps { list-style: none; counter-reset: s; display: flex; flex-direction: column; gap: 10px; }
+    .m-steps li { counter-increment: s; display: flex; gap: 12px; font-size: .95rem; line-height: 1.45; color: #d9d6d0; }
+    .m-steps li::before {
+      content: counter(s);
+      flex-shrink: 0; width: 26px; height: 26px; border-radius: 50%;
+      background: var(--orange); color: #fff; font-weight: 800; font-size: .85rem;
+      display: grid; place-items: center; margin-top: 1px;
+    }
+    .m-score { list-style: none; display: flex; flex-direction: column; gap: 10px; }
+    .m-score li { display: flex; align-items: center; gap: 12px; font-size: .95rem; line-height: 1.4; color: #d9d6d0; }
+    .pts {
+      flex-shrink: 0; min-width: 52px; text-align: center;
+      background: var(--orange-soft); color: var(--orange);
+      border: 1px solid rgba(255,107,26,.4);
+      border-radius: 999px; padding: 4px 8px; font-weight: 800; font-size: .85rem;
+    }
+    .manual-foot { padding: 14px 22px 20px; border-top: 1px solid var(--border); }
+
+    .hidden { display: none !important; }
+    .actions { width: 100%; display: flex; flex-direction: column; gap: 10px; }
+  </style>
+</head>
+<body>
+
+  <!-- =================== TELA INICIAL =================== -->
+  <section class="screen" id="homeScreen" aria-label="Tela inicial">
+    <div class="home-deco" aria-hidden="true"><span class="q1">?</span><span class="q2">?</span><span class="q3">?</span></div>
+
+    <h1 class="home-logo">Mente<span>Alheia</span></h1>
+    <p class="home-tagline">Quão bem você conhece as pessoas à sua volta?</p>
+
+    <div class="home-actions">
+      <button class="btn btn-primary btn-play" id="playBtn" type="button">Jogar →</button>
+      <button class="btn btn-ghost" id="howBtn" type="button">Como Jogar</button>
+    </div>
+    <p class="home-foot">Para 4 ou mais jogadores</p>
+  </section>
+
+  <!-- =================== TELA DO JOGO =================== -->
+  <div class="screen hidden" id="gameScreen">
+  <header>
+    <button class="back-btn" id="backBtn" type="button">‹ Início</button>
+    <button class="sound-btn" id="soundBtn" type="button" aria-pressed="true">🔊 Som</button>
+    <h1 class="logo">Mente<span>Alheia</span></h1>
+    <p class="tagline">Quão bem você conhece as pessoas à sua volta?</p>
+  </header>
+
+  <main class="layout">
+
+    <!-- ===== Cadastro de jogadores ===== -->
+    <section class="panel" aria-labelledby="t-cadastro">
+      <h2 id="t-cadastro">Cadastrar Jogadores</h2>
+
+      <div class="add-row" id="addForm">
+        <input id="nameInput" type="text" maxlength="20" placeholder="Nome do jogador" aria-label="Nome do jogador" autocomplete="off" />
+        <button class="btn btn-primary btn-add" id="addBtn" type="button" aria-label="Adicionar jogador">+ Adicionar</button>
+      </div>
+      <p class="error" id="error" role="alert"></p>
+
+      <div class="counter">
+        <span>Jogadores cadastrados</span>
+        <strong id="counter">0</strong>
+      </div>
+
+      <ul class="player-list" id="playerList"></ul>
+    </section>
+
+    <!-- ===== Sorteio ===== -->
+    <section class="panel draw-panel" aria-labelledby="t-sorteio">
+      <h2 id="t-sorteio">Próximo Jogador</h2>
+
+      <div class="wheel" id="wheel">
+        <div class="pointer"></div>
+        <svg viewBox="0 0 120 120" aria-hidden="true">
+          <g class="ring-spin">
+            <circle class="track" cx="60" cy="60" r="52" />
+            <circle class="progress" id="progress" cx="60" cy="60" r="52" />
+          </g>
+        </svg>
+        <div class="wheel-center">
+          <div>
+            <div class="drawn-label" id="drawnLabel">Da vez</div>
+            <div class="drawn-name placeholder" id="drawnName" aria-live="polite">Ninguém ainda</div>
+          </div>
+        </div>
+      </div>
+
+      <div class="qtype hidden" id="qtype" aria-live="polite">
+        <span id="qtypeIcon" aria-hidden="true"></span>
+        <div><small>Tipo de pergunta</small><span id="qtypeLabel"></span></div>
+      </div>
+
+      <div class="timer" id="timer">
+        <div class="timer-head">
+          <span>Tempo de resposta</span>
+          <div class="stepper">
+            <button type="button" id="tMinus" aria-label="Diminuir 5 segundos">−</button>
+            <input id="tInput" type="number" min="5" max="600" step="5" value="45" aria-label="Tempo em segundos" />
+            <button type="button" id="tPlus" aria-label="Aumentar 5 segundos">+</button>
+            <span>seg</span>
+          </div>
+        </div>
+        <div class="presets" id="tPresets">
+          <button type="button" class="chip" data-s="30">30s</button>
+          <button type="button" class="chip" data-s="45">45s</button>
+          <button type="button" class="chip" data-s="60">1 min</button>
+          <button type="button" class="chip" data-s="120">2 min</button>
+        </div>
+        <div class="timer-face">
+          <svg viewBox="0 0 120 120" aria-hidden="true">
+            <circle class="t-track" cx="60" cy="60" r="52" />
+            <circle class="t-progress" id="tProgress" cx="60" cy="60" r="52" />
+          </svg>
+          <div class="timer-time" id="tDisplay" aria-live="off">00:45</div>
+        </div>
+        <p class="t-msg hidden" id="tMsg">⏰ Tempo esgotado!</p>
+        <div class="timer-actions">
+          <button class="btn btn-primary" id="tStart" type="button" disabled>Iniciar Cronômetro</button>
+          <button class="btn btn-ghost hidden" id="tCancel" type="button">Cancelar</button>
+        </div>
+      </div>
+
+      <p class="status" id="status">Cadastre pelo menos 2 jogadores para começar.</p>
+
+      <div class="cycle-end hidden" id="cycleEnd">
+        🎉 Todos os jogadores já foram sorteados! O ciclo acabou.
+        Reinicie para sortear novamente os mesmos jogadores.
+      </div>
+
+      <div class="actions">
+        <button class="btn btn-primary btn-block" id="drawBtn" disabled>Sortear Jogador da Rodada</button>
+        <button class="btn btn-ghost btn-block hidden" id="resetBtn">Reiniciar Sorteio</button>
+      </div>
+    </section>
+
+  </main>
+  </div><!-- /gameScreen -->
+
+  <!-- =================== MANUAL: COMO JOGAR =================== -->
+  <div class="manual hidden" id="manual" role="dialog" aria-modal="true" aria-labelledby="manualTitle">
+    <div class="manual-sheet">
+      <div class="manual-head">
+        <h2 id="manualTitle">Como Jogar</h2>
+        <button class="manual-close" id="manualClose" type="button" aria-label="Fechar">✕</button>
+      </div>
+
+      <div class="manual-body">
+        <section class="m-card">
+          <h3>🧠 Apresentação</h3>
+          <p><strong>Mente Alheia</strong> é um jogo de festa em que você ganha pontos lendo a mente dos outros e pensando igual ao seu parceiro.</p>
+          <p>Partida para no mínimo <strong>4 jogadores</strong>, divididos em duplas.</p>
+        </section>
+
+        <section class="m-card">
+          <h3>🎒 Preparação</h3>
+          <p>Formem duplas, combinem a sintonia conversando por um minuto, cadastrem os nomes no app e definam o tempo de resposta (padrão de 45 segundos).</p>
+        </section>
+
+        <section class="m-card">
+          <h3>🔁 Passo a passo da rodada</h3>
+          <ol class="m-steps">
+            <li>O app sorteia o Jogador da Rodada e uma pergunta.</li>
+            <li>O sorteado responde em segredo no papel. Todos os outros escrevem uma resposta tentando acertar o sorteado e combinar com a dupla.</li>
+            <li>Revelação simultânea ("um, dois, três, já!").</li>
+            <li>Contagem de pontos e anotação no placar.</li>
+          </ol>
+        </section>
+
+        <section class="m-card">
+          <h3>⭐ Regras de pontuação</h3>
+          <ul class="m-score">
+            <li><span class="pts">2 pts</span><span>Acertar o Jogador da Rodada.</span></li>
+            <li><span class="pts">1 pt</span><span>Não acertar o sorteado, mas combinar com a dupla.</span></li>
+            <li><span class="pts">+1 pt</span><span>O Jogador da Rodada ganha 1 ponto por cada pessoa que acertar a resposta dele.</span></li>
+            <li><span class="pts">1 pt</span><span>Se ninguém acertar a resposta do sorteado, todos ganham 1 ponto, menos o sorteado.</span></li>
+          </ul>
+        </section>
+
+        <section class="m-card">
+          <h3>🏆 Fim de jogo</h3>
+          <p>Termina quando todos já foram o Jogador da Rodada uma vez. Quem tiver mais pontos vence!</p>
+        </section>
+      </div>
+
+      <div class="manual-foot">
+        <button class="btn btn-primary btn-block" id="manualPlay" type="button">Entendi, vamos jogar →</button>
+      </div>
+    </div>
+  </div>
+
+<script>
+/* =====================================================================
+   ESTADO DA APLICAÇÃO
+   ---------------------------------------------------------------------
+   players   -> lista de jogadores cadastrados: { id, name }
+   drawnIds  -> Set com os ids que JÁ foram sorteados no ciclo atual
+   currentId -> id do jogador sorteado agora (para destacar na lista)
+   ===================================================================== */
+const state = {
+  players: [],
+  drawnIds: new Set(),
+  currentId: null,
+  questionType: null,   // resultado do 2º sorteio: 'normal' | 'dark' | null
+  spinning: false,
+  nextId: 1,
+};
+
+/* =====================================================================
+   EFEITOS SONOROS (Web Audio API)
+   ---------------------------------------------------------------------
+   Todos os sons são sintetizados pelo navegador: não há arquivos de
+   áudio para baixar, funciona offline e não há atraso de carregamento.
+
+   Pontos de disparo no jogo:
+     sfx.tick(p)            -> cada "giro" da roleta (jogador e tipo)
+     sfx.reveal()           -> nome do jogador revelado
+     sfx.typeReveal(tipo)   -> tipo de pergunta revelado (normal / dark)
+     sfx.startTension()     -> cronômetro chega a 10 s (drone de fundo)
+     sfx.countdown(seg)     -> batida de coração a cada segundo final
+     sfx.stopTension()      -> pausa, cancelamento ou fim do tempo
+     sfx.alarm()            -> tempo esgotado
+
+   Quer usar arquivos próprios (MP3/OGG)? Preencha SOUND_FILES abaixo
+   com o caminho do arquivo e ele substitui o som sintetizado.
+   ===================================================================== */
+const SOUND_FILES = {
+  tension: '',   // ex.: 'sons/tensao.mp3' (toca em loop nos últimos 10 s)
+  alarm:   '',   // ex.: 'sons/alarme.mp3'
+};
+
+const sfx = (() => {
+  let ctx = null, master = null;
+  let muted = false;
+  let tension = null;           // nós de áudio do drone (ou <audio> do arquivo)
+
+  try { muted = localStorage.getItem('somMudo') === '1'; } catch (e) {}
+
+  /* Navegadores só liberam áudio depois de um toque/clique do usuário.
+     unlock() é chamado no primeiro toque e deixa o contexto pronto. */
+  function unlock() {
+    try {
+      if (!ctx) {
+        ctx = new (window.AudioContext || window.webkitAudioContext)();
+        master = ctx.createGain();
+        master.gain.value = 0.9;
+        master.connect(ctx.destination);
+      }
+      if (ctx.state === 'suspended') ctx.resume();
+    } catch (e) { ctx = null; }
+  }
+  const ready = () => !muted && ctx && ctx.state !== 'closed';
+
+  /* Nota simples com envelope: sobe rápido e decai até sumir */
+  function tone({ freq = 440, type = 'sine', at = 0, dur = 0.15, vol = 0.2, slideTo = null }) {
+    if (!ready()) return;
+    const t = ctx.currentTime + at;
+    const osc = ctx.createOscillator();
+    const g = ctx.createGain();
+    osc.type = type;
+    osc.frequency.setValueAtTime(freq, t);
+    if (slideTo) osc.frequency.exponentialRampToValueAtTime(slideTo, t + dur);
+    g.gain.setValueAtTime(0.0001, t);
+    g.gain.exponentialRampToValueAtTime(vol, t + 0.01);
+    g.gain.exponentialRampToValueAtTime(0.0001, t + dur);
+    osc.connect(g); g.connect(master);
+    osc.start(t); osc.stop(t + dur + 0.02);
+  }
+
+  function playFile(src, loop) {
+    if (muted) return null;
+    try { const a = new Audio(src); a.loop = !!loop; a.play().catch(() => {}); return a; }
+    catch (e) { return null; }
+  }
+
+  return {
+    unlock,
+    isMuted: () => muted,
+
+    setMuted(v) {
+      muted = v;
+      try { localStorage.setItem('somMudo', v ? '1' : '0'); } catch (e) {}
+      if (v) this.stopTension();
+    },
+
+    /* 1. ROLETA: clique curto; o tom sobe conforme o sorteio avança (p de 0 a 1) */
+    tick(p = 0) {
+      tone({ freq: 700 + p * 700, type: 'square', dur: 0.035, vol: 0.07 });
+    },
+
+    reveal() {                                   // acorde de "ta-dá"
+      [523, 659, 784, 1047].forEach((f, i) =>
+        tone({ freq: f, type: 'triangle', at: i * 0.07, dur: 0.35, vol: 0.16 }));
+    },
+
+    typeReveal(type) {
+      if (type === 'dark') {                     // grave e sombrio
+        tone({ freq: 110, type: 'sawtooth', dur: 1.1, vol: 0.14, slideTo: 55 });
+        tone({ freq: 116, type: 'sawtooth', dur: 1.1, vol: 0.10, slideTo: 58 });
+        tone({ freq: 1400, type: 'sine', at: 0.05, dur: 0.6, vol: 0.04, slideTo: 300 });
+      } else {                                   // leve e alegre
+        tone({ freq: 784, type: 'sine', dur: 0.18, vol: 0.18 });
+        tone({ freq: 1175, type: 'sine', at: 0.12, dur: 0.3, vol: 0.18 });
+      }
+    },
+
+    /* 2. TENSÃO: drone grave e pulsante que fica tocando nos últimos 10 s */
+    startTension() {
+      if (tension || muted) return;
+      if (SOUND_FILES.tension) { tension = { file: playFile(SOUND_FILES.tension, true) }; return; }
+      if (!ready()) return;
+      const t = ctx.currentTime;
+      const g = ctx.createGain();
+      const lp = ctx.createBiquadFilter();
+      lp.type = 'lowpass'; lp.frequency.value = 420;
+      g.gain.setValueAtTime(0.0001, t);
+      g.gain.exponentialRampToValueAtTime(0.09, t + 0.6);
+      const oscs = [55, 58.3].map((f) => {       // duas notas quase iguais = "batimento" inquietante
+        const o = ctx.createOscillator();
+        o.type = 'sawtooth'; o.frequency.value = f;
+        o.connect(lp); o.start(t);
+        return o;
+      });
+      const lfo = ctx.createOscillator();         // faz o volume pulsar
+      const lfoGain = ctx.createGain();
+      lfo.frequency.value = 2; lfoGain.gain.value = 0.04;
+      lfo.connect(lfoGain); lfoGain.connect(g.gain); lfo.start(t);
+      lp.connect(g); g.connect(master);
+      tension = { oscs: [...oscs, lfo], gain: g };
+    },
+
+    /* Batida de coração por segundo; fica mais forte e ganha um bip nos 3 últimos */
+    countdown(sec) {
+      const urg = (10 - Math.min(sec, 10)) / 10;   // 0 a 1
+      tone({ freq: 90, type: 'sine', dur: 0.16, vol: 0.35 + urg * 0.3, slideTo: 45 });
+      tone({ freq: 80, type: 'sine', at: 0.18, dur: 0.14, vol: 0.25 + urg * 0.25, slideTo: 40 });
+      if (sec <= 3) tone({ freq: 1320, type: 'square', dur: 0.08, vol: 0.08 });
+      if (tension && tension.oscs) {              // o drone sobe de tom a cada segundo
+        tension.oscs.slice(0, 2).forEach((o, i) =>
+          o.frequency.setTargetAtTime((i ? 58.3 : 55) * (1 + urg * 0.5), ctx.currentTime, 0.2));
+      }
+    },
+
+    stopTension() {
+      if (!tension) return;
+      const tn = tension; tension = null;
+      if (tn.file) { tn.file && tn.file.pause(); return; }
+      try {
+        const t = ctx.currentTime;
+        tn.gain.gain.cancelScheduledValues(t);
+        tn.gain.gain.setValueAtTime(tn.gain.gain.value || 0.05, t);
+        tn.gain.gain.exponentialRampToValueAtTime(0.0001, t + 0.25);
+        tn.oscs.forEach((o) => o.stop(t + 0.3));
+      } catch (e) {}
+    },
+
+    /* 3. FIM DO TEMPO: campainha de alarme (dois tons alternados, ~1,5 s) */
+    alarm() {
+      if (SOUND_FILES.alarm) { playFile(SOUND_FILES.alarm, false); return; }
+      for (let i = 0; i < 12; i++) {
+        tone({ freq: i % 2 ? 660 : 880, type: 'square', at: i * 0.12, dur: 0.11, vol: 0.13 });
+      }
+      tone({ freq: 1760, type: 'sine', at: 0, dur: 1.5, vol: 0.05 });
+    },
+  };
+})();
+
+// Libera o áudio no primeiro toque/tecla (exigência dos navegadores)
+['pointerdown', 'keydown', 'touchstart'].forEach((ev) =>
+  document.addEventListener(ev, sfx.unlock, { passive: true }));
+
+/* ---------- Referências do DOM ---------- */
+const $ = (id) => document.getElementById(id);
+const addForm   = $('addForm');
+const nameInput = $('nameInput');
+const errorEl   = $('error');
+const counterEl = $('counter');
+const listEl    = $('playerList');
+const drawBtn   = $('drawBtn');
+const resetBtn  = $('resetBtn');
+const drawnName = $('drawnName');
+const drawnLabel= $('drawnLabel');
+const statusEl  = $('status');
+const cycleEnd  = $('cycleEnd');
+const wheel     = $('wheel');
+const progress  = $('progress');
+
+/* Anel de progresso: circunferência = 2πr, com r = 52 */
+const CIRC = 2 * Math.PI * 52;
+progress.style.strokeDasharray = CIRC;
+
+/* Ícone da lixeira (SVG inline) */
+const TRASH = `<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M3 6h18M8 6V4h8v2M6 6l1 14h10l1-14M10 10v6M14 10v6"/></svg>`;
+
+/* =====================================================================
+   CADASTRO
+   ===================================================================== */
+function addPlayer() {
+  const name = nameInput.value.trim();
+
+  if (!name) return showError('Digite um nome.');
+
+  // Impede nomes duplicados (ignorando maiúsculas/minúsculas)
+  const exists = state.players.some(p => p.name.toLowerCase() === name.toLowerCase());
+  if (exists) return showError('Esse jogador já está na lista.');
+
+  showError('');
+  state.players.push({ id: state.nextId++, name });
+  nameInput.value = '';
+  nameInput.focus();
+  render();
+}
+
+// Clique no botão ou tecla Enter no campo adicionam o jogador
+$('addBtn').addEventListener('click', addPlayer);
+nameInput.addEventListener('keydown', (e) => {
+  if (e.key === 'Enter') { e.preventDefault(); addPlayer(); }
+});
+
+function removePlayer(id) {
+  if (state.spinning) return;
+  state.players = state.players.filter(p => p.id !== id);
+  state.drawnIds.delete(id);            // também sai do histórico do ciclo
+  if (state.currentId === id) {
+    state.currentId = null;
+    showPlaceholder();
+  }
+  render();
+}
+
+function showError(msg) { errorEl.textContent = msg; }
+
+/* =====================================================================
+   ALGORITMO DE SORTEIO SEM REPETIÇÃO
+   ---------------------------------------------------------------------
+   Ideia: manter um "histórico" (drawnIds) com quem já saiu no ciclo.
+
+   1. Monta o "pool": jogadores cujo id NÃO está em drawnIds.
+   2. Sorteia um índice aleatório dentro do pool (Math.random).
+      Como só quem ainda não saiu está no pool, é impossível repetir.
+   3. Registra o sorteado em drawnIds.
+   4. Quando drawnIds.size === players.length, o pool fica vazio:
+      o ciclo acabou. Avisamos o usuário e oferecemos "Reiniciar",
+      que apenas limpa drawnIds (os jogadores continuam cadastrados).
+
+   Jogadores adicionados no meio do ciclo entram automaticamente no
+   pool, e jogadores removidos saem do histórico (ver removePlayer).
+   ===================================================================== */
+function getPool() {
+  return state.players.filter(p => !state.drawnIds.has(p.id));
+}
+
+function pickRandom(pool) {
+  const index = Math.floor(Math.random() * pool.length);
+  return pool[index];
+}
+
+function isCycleOver() {
+  return state.players.length > 0 && getPool().length === 0;
+}
+
+drawBtn.addEventListener('click', () => {
+  if (state.spinning) return;
+
+  const pool = getPool();
+  if (pool.length === 0) return;          // ciclo terminou: nada a sortear
+
+  const winner = pickRandom(pool);        // passo 2: sorteio dentro do pool
+  animateDraw(pool, winner);
+});
+
+resetBtn.addEventListener('click', () => {
+  if (state.spinning) return;
+  state.drawnIds.clear();                 // limpa o histórico do ciclo
+  state.currentId = null;
+  showPlaceholder();
+  render();
+});
+
+/* Animação: embaralha nomes do pool rapidamente e revela o vencedor.
+   O vencedor já foi decidido ANTES da animação; ela é só visual. */
+function animateDraw(pool, winner) {
+  state.spinning = true;
+  wheel.classList.add('spinning');
+  resetTimer();                           // novo sorteio zera o cronômetro
+  state.questionType = null;              // limpa o tipo da rodada anterior
+  renderQuestionType();
+  drawnName.classList.remove('reveal');
+  drawnName.classList.remove('placeholder');
+  drawnLabel.textContent = 'Sorteando…';
+  render();
+
+  const start = Date.now();
+  const duration = 1400;
+  const timer = setInterval(() => {
+    drawnName.textContent = pool[Math.floor(Math.random() * pool.length)].name;
+    sfx.tick(Math.min(1, (Date.now() - start) / duration));   // som da roleta
+    if (Date.now() - start >= duration) {
+      clearInterval(timer);
+      finishDraw(winner);
+    }
+  }, 90);
+}
+
+function finishDraw(winner) {
+  state.spinning = false;
+  state.currentId = winner.id;
+  state.drawnIds.add(winner.id);          // passo 3: registra no histórico
+  wheel.classList.remove('spinning');
+
+  drawnLabel.textContent = 'Da vez';
+  drawnName.textContent = winner.name;
+  void drawnName.offsetWidth;             // reinicia a animação CSS
+  drawnName.classList.add('reveal');
+  sfx.reveal();                           // ta-dá do jogador
+  render();
+  animateQuestionType(drawQuestionType()); // 2º sorteio: Normal ou Dark
+}
+
+function showPlaceholder() {
+  resetTimer();
+  state.questionType = null;
+  renderQuestionType();
+  drawnName.textContent = 'Ninguém ainda';
+  drawnName.className = 'drawn-name placeholder';
+  drawnLabel.textContent = 'Da vez';
+}
+
+/* =====================================================================
+   SORTEIO DO TIPO DE PERGUNTA (Normal x Dark)
+   ---------------------------------------------------------------------
+   Acontece logo depois do sorteio do jogador (ver finishDraw).
+   O resultado fica guardado em state.questionType ('normal' ou 'dark'),
+   então qualquer etapa seguinte lê state.questionType ou chama
+   getQuestionType() para saber o que foi sorteado.
+   Cada tipo tem 50% de chance. Para mudar, ajuste DARK_CHANCE.
+   ===================================================================== */
+const QUESTION_TYPES = {
+  normal: { label: 'Pergunta Normal', icon: '🙂' },
+  dark:   { label: 'Pergunta Dark',   icon: '💀' },
+};
+const DARK_CHANCE = 0.5;
+
+/* Sorteia e devolve a chave do tipo: 'normal' ou 'dark' */
+function drawQuestionType() {
+  return Math.random() < DARK_CHANCE ? 'dark' : 'normal';
+}
+
+/* Leitura do resultado para a próxima etapa do programa */
+function getQuestionType() { return state.questionType; }
+
+const qtypeEl    = $('qtype');
+const qtypeIcon  = $('qtypeIcon');
+const qtypeLabel = $('qtypeLabel');
+
+/* Mostra o tipo sorteado (ou esconde se ainda não há sorteio) */
+function renderQuestionType(animate) {
+  const t = state.questionType;
+  qtypeEl.classList.remove('normal', 'dark', 'shuffling');
+  if (!t) { qtypeEl.classList.add('hidden'); return; }
+  qtypeEl.classList.remove('hidden');
+  qtypeEl.classList.add(t);
+  qtypeIcon.textContent = QUESTION_TYPES[t].icon;
+  qtypeLabel.textContent = QUESTION_TYPES[t].label;
+  if (animate) {
+    qtypeEl.classList.remove('reveal');
+    void qtypeEl.offsetWidth;            // reinicia a animação CSS
+    qtypeEl.classList.add('reveal');
+  }
+}
+
+/* Embaralha as duas opções rapidamente e revela o tipo já decidido */
+function animateQuestionType(result) {
+  const keys = Object.keys(QUESTION_TYPES);
+  let i = 0, n = 0;
+  qtypeEl.classList.remove('hidden', 'normal', 'dark', 'reveal');
+  qtypeEl.classList.add('shuffling');
+  const t = setInterval(() => {
+    const k = keys[i++ % keys.length];
+    qtypeIcon.textContent = QUESTION_TYPES[k].icon;
+    qtypeLabel.textContent = QUESTION_TYPES[k].label;
+    sfx.tick(n / 8);                     // som da roleta
+    if (++n >= 8) {
+      clearInterval(t);
+      state.questionType = result;       // guarda o resultado
+      renderQuestionType(true);
+      sfx.typeReveal(result);            // som do tipo revelado
+    }
+  }, 110);
+}
+
+/* =====================================================================
+   RENDERIZAÇÃO (atualiza a interface a partir do estado)
+   ===================================================================== */
+function render() {
+  const total = state.players.length;
+  const drawn = state.drawnIds.size;
+  const over  = isCycleOver();
+
+  // Contador em tempo real
+  counterEl.textContent = total;
+
+  // Lista de jogadores
+  listEl.innerHTML = '';
+  if (total === 0) {
+    listEl.innerHTML = '<li class="empty" style="display:block;border:none;background:none">Nenhum jogador ainda.</li>';
+  }
+  state.players.forEach(p => {
+    const li = document.createElement('li');
+    if (state.drawnIds.has(p.id)) li.classList.add('drawn');
+    if (p.id === state.currentId) li.classList.add('current');
+
+    const left = document.createElement('span');
+    const nm = document.createElement('span');
+    nm.className = 'name';
+    nm.textContent = p.name;                // textContent evita injeção de HTML
+    left.appendChild(nm);
+    if (p.id === state.currentId) {
+      const b = document.createElement('span');
+      b.className = 'badge';
+      b.textContent = 'da vez';
+      left.appendChild(b);
+    }
+
+    const del = document.createElement('button');
+    del.className = 'remove';
+    del.setAttribute('aria-label', 'Remover ' + p.name);
+    del.innerHTML = TRASH;
+    del.disabled = state.spinning;
+    del.addEventListener('click', () => removePlayer(p.id));
+
+    li.append(left, del);
+    listEl.appendChild(li);
+  });
+
+  // Anel de progresso (quantos já foram sorteados)
+  const ratio = total ? drawn / total : 0;
+  progress.style.strokeDashoffset = CIRC * (1 - ratio);
+
+  // Mensagens e botões
+  cycleEnd.classList.toggle('hidden', !over || state.spinning);
+  resetBtn.classList.toggle('hidden', drawn === 0 || state.spinning);
+
+  if (total < 2) {
+    statusEl.textContent = 'Cadastre pelo menos 2 jogadores para começar.';
+  } else if (over) {
+    statusEl.textContent = `${drawn} de ${total} sorteados.`;
+  } else {
+    statusEl.textContent = `${drawn} de ${total} sorteados • faltam ${total - drawn}`;
+  }
+
+  drawBtn.disabled = total < 2 || over || state.spinning;
+  updateTimerUI();
+}
+
+/* =====================================================================
+   CRONÔMETRO (contagem regressiva configurável)
+   ---------------------------------------------------------------------
+   Usa o horário de término (endAt) em vez de subtrair 1 por tick, assim
+   a contagem continua precisa mesmo se a aba ficar em segundo plano.
+   Estados: idle (parado) | running | paused | done (tempo esgotado)
+   ===================================================================== */
+const timerEl  = $('timer');
+const tDisplay = $('tDisplay');
+const tProgress= $('tProgress');
+const tStart   = $('tStart');
+const tCancel  = $('tCancel');
+const tInput   = $('tInput');
+const tMinus   = $('tMinus');
+const tPlus    = $('tPlus');
+const tMsg     = $('tMsg');
+const chips    = document.querySelectorAll('#tPresets .chip');
+
+const T_CIRC = 2 * Math.PI * 52;
+tProgress.style.strokeDasharray = T_CIRC;
+
+const timer = { total: 45, remaining: 45, status: 'idle', endAt: 0, handle: null, lastSec: null };
+
+// Lembra o último tempo escolhido (se o navegador permitir)
+try {
+  const saved = parseInt(localStorage.getItem('tempoResposta'), 10);
+  if (saved >= 5 && saved <= 600) { timer.total = timer.remaining = saved; }
+} catch (e) { /* sem localStorage: segue com o padrão */ }
+tInput.value = timer.total;
+
+function clampTime(v) {
+  v = parseInt(v, 10);
+  if (isNaN(v)) v = 45;
+  return Math.min(600, Math.max(5, v));           // entre 5s e 10min
+}
+
+function timerLocked() { return timer.status === 'running' || timer.status === 'paused'; }
+
+/* Define a duração do cronômetro (só quando não está em andamento) */
+function setTotal(seconds) {
+  if (timerLocked()) return;
+  timer.total = clampTime(seconds);
+  timer.remaining = timer.total;
+  timer.status = 'idle';
+  tInput.value = timer.total;
+  try { localStorage.setItem('tempoResposta', timer.total); } catch (e) {}
+  updateTimerUI();
+}
+
+function fmt(sec) {
+  const s = Math.ceil(sec);
+  return String(Math.floor(s / 60)).padStart(2, '0') + ':' + String(s % 60).padStart(2, '0');
+}
+
+function tick() {
+  timer.remaining = Math.max(0, (timer.endAt - Date.now()) / 1000);
+  if (timer.remaining <= 0) return finishTimer();
+
+  /* Últimos 10 segundos: na virada de cada segundo inteiro (10, 9, ... 1)
+     liga o drone de tensão (só na primeira vez) e toca a batida. */
+  const sec = Math.ceil(timer.remaining);
+  if (sec <= 10 && sec !== timer.lastSec) {
+    timer.lastSec = sec;
+    sfx.startTension();
+    sfx.countdown(sec);
+  }
+  updateTimerUI();
+}
+
+function startTimer() {
+  if (timer.status === 'done') timer.remaining = timer.total;   // reinício após esgotar
+  timer.lastSec = null;
+  timer.endAt = Date.now() + timer.remaining * 1000;
+  timer.status = 'running';
+  clearInterval(timer.handle);
+  timer.handle = setInterval(tick, 100);
+  updateTimerUI();
+}
+
+function pauseTimer() {
+  timer.remaining = Math.max(0, (timer.endAt - Date.now()) / 1000);
+  clearInterval(timer.handle);
+  sfx.stopTension();                       // pausa silencia a tensão
+  timer.status = 'paused';
+  updateTimerUI();
+}
+
+function finishTimer() {
+  clearInterval(timer.handle);
+  timer.remaining = 0;
+  timer.status = 'done';
+  updateTimerUI();
+  sfx.stopTension();
+  sfx.alarm();                             // campainha de tempo esgotado
+  if (navigator.vibrate) navigator.vibrate([300, 150, 300]);
+}
+
+function resetTimer() {
+  clearInterval(timer.handle);
+  sfx.stopTension();
+  timer.lastSec = null;
+  timer.remaining = timer.total;
+  timer.status = 'idle';
+  updateTimerUI();
+}
+
+function updateTimerUI() {
+  tDisplay.textContent = fmt(timer.remaining);
+  const ratio = timer.total ? timer.remaining / timer.total : 0;
+  tProgress.style.strokeDashoffset = T_CIRC * (1 - ratio);
+
+  timerEl.classList.toggle('low', timer.status === 'running' && timer.remaining <= 10);
+  timerEl.classList.toggle('done', timer.status === 'done');
+  tMsg.classList.toggle('hidden', timer.status !== 'done');
+
+  const locked = timerLocked();
+  tInput.disabled = tMinus.disabled = tPlus.disabled = locked;
+  chips.forEach((c) => {
+    c.disabled = locked;
+    c.classList.toggle('active', parseInt(c.dataset.s, 10) === timer.total);
+  });
+
+  tStart.textContent = {
+    idle: 'Iniciar Cronômetro',
+    running: 'Pausar',
+    paused: 'Continuar',
+    done: 'Reiniciar Cronômetro',
+  }[timer.status];
+  tStart.disabled = state.currentId === null || state.spinning;   // só após sortear alguém
+  tCancel.classList.toggle('hidden', timer.status === 'idle');
+}
+
+tStart.addEventListener('click', () => {
+  if (timer.status === 'running') pauseTimer(); else startTimer();
+});
+tCancel.addEventListener('click', resetTimer);
+tMinus.addEventListener('click', () => setTotal(timer.total - 5));
+tPlus.addEventListener('click', () => setTotal(timer.total + 5));
+tInput.addEventListener('change', () => setTotal(tInput.value));
+tInput.addEventListener('keydown', (e) => { if (e.key === 'Enter') { e.preventDefault(); setTotal(tInput.value); } });
+chips.forEach((c) => c.addEventListener('click', () => setTotal(c.dataset.s)));
+
+/* Estado inicial */
+updateTimerUI();
+render();
+
+/* =====================================================================
+   NAVEGAÇÃO ENTRE TELAS (Home <-> Jogo) E MANUAL "COMO JOGAR"
+   ---------------------------------------------------------------------
+   showScreen('home' | 'game') alterna qual tela aparece.
+   O estado do jogo (jogadores, sorteios) fica na memória, então voltar
+   ao início e entrar de novo não perde nada; só recarregar a página zera.
+   ===================================================================== */
+const homeScreen = $('homeScreen');
+const gameScreen = $('gameScreen');
+const manualEl   = $('manual');
+let lastFocus = null;
+
+function showScreen(name) {
+  const toGame = name === 'game';
+  homeScreen.classList.toggle('hidden', toGame);
+  gameScreen.classList.toggle('hidden', !toGame);
+  window.scrollTo(0, 0);
+  if (toGame) nameInput.focus({ preventScroll: true });
+  else if (timerLocked() && timer.status === 'running') pauseTimer();   // não deixa o tempo correr escondido
+}
+
+function openManual() {
+  lastFocus = document.activeElement;
+  manualEl.classList.remove('hidden');
+  document.body.style.overflow = 'hidden';
+  $('manualClose').focus();
+}
+function closeManual() {
+  manualEl.classList.add('hidden');
+  document.body.style.overflow = '';
+  if (lastFocus) lastFocus.focus();
+}
+
+$('playBtn').addEventListener('click', () => showScreen('game'));
+
+/* Botão de som: liga/desliga todos os efeitos (fica salvo no navegador) */
+const soundBtn = $('soundBtn');
+function renderSoundBtn() {
+  const off = sfx.isMuted();
+  soundBtn.textContent = off ? '🔇 Mudo' : '🔊 Som';
+  soundBtn.classList.toggle('off', off);
+  soundBtn.setAttribute('aria-pressed', String(!off));
+}
+soundBtn.addEventListener('click', () => { sfx.setMuted(!sfx.isMuted()); renderSoundBtn(); });
+renderSoundBtn();
+$('backBtn').addEventListener('click', () => showScreen('home'));
+$('howBtn').addEventListener('click', openManual);
+$('manualClose').addEventListener('click', closeManual);
+$('manualPlay').addEventListener('click', () => { closeManual(); showScreen('game'); });
+manualEl.addEventListener('click', (e) => { if (e.target === manualEl) closeManual(); });   // clique fora fecha
+document.addEventListener('keydown', (e) => { if (e.key === 'Escape' && !manualEl.classList.contains('hidden')) closeManual(); });
+</script>
+</body>
+</html>
