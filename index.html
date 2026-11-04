@@ -470,6 +470,24 @@
     }
     .manual-foot { padding: 14px 22px 20px; border-top: 1px solid var(--border); }
 
+    /* Modo sem duplas (cada um por si) */
+    .m-card h4 {
+      font-size: .8rem; text-transform: uppercase; letter-spacing: 1px;
+      color: var(--text); margin: 14px 0 6px;
+    }
+    .m-card h4:first-of-type { margin-top: 10px; }
+    .m-who {
+      display: block; font-size: .7rem; text-transform: uppercase;
+      letter-spacing: .8px; color: var(--muted); margin-bottom: 2px;
+    }
+    .m-example {
+      margin-top: 14px; padding: 12px 14px;
+      border-left: 3px solid var(--orange);
+      background: var(--orange-soft);
+      border-radius: 0 12px 12px 0;
+      font-size: .9rem; line-height: 1.5; color: #d9d6d0;
+    }
+
     .hidden { display: none !important; }
     .actions { width: 100%; display: flex; flex-direction: column; gap: 10px; }
   </style>
@@ -628,6 +646,33 @@
             <li><span class="pts">+1 pt</span><span>O Jogador da Rodada ganha 1 ponto por cada pessoa que acertar a resposta dele.</span></li>
             <li><span class="pts">1 pt</span><span>Se ninguém acertar a resposta do sorteado, todos ganham 1 ponto, menos o sorteado.</span></li>
           </ul>
+        </section>
+
+        <section class="m-card">
+          <h3>👤 Modo sem duplas (cada um por si)</h3>
+          <p><strong>Mente Alheia</strong> também pode ser jogado cada um por si, sem formar duplas. Nesse modo, o único alvo é acertar a resposta do Jogador da Rodada. Todas as outras regras continuam iguais, com as mudanças abaixo.</p>
+
+          <h4>Preparação</h4>
+          <p>Pulem os passos 1 (formar duplas) e 2 (combinar a sintonia). Os jogadores podem sentar em qualquer ordem.</p>
+
+          <h4>2ª Fase (Palpites)</h4>
+          <p>Cada adivinhador escreve pensando em um alvo só: a resposta do sorteado.</p>
+
+          <h4>Pontuação</h4>
+          <p>Não existe ponto de sintonia. Use a tabela abaixo:</p>
+          <ul class="m-score" style="margin-top:10px">
+            <li><span class="pts">2 pts</span><span><span class="m-who">Adivinhador</span>Escreveu exatamente a mesma resposta do Jogador da Rodada.</span></li>
+            <li><span class="pts">0 pts</span><span><span class="m-who">Adivinhador</span>Não acertou o sorteado.</span></li>
+            <li><span class="pts">1 pt</span><span><span class="m-who">Adivinhador</span>Ninguém acertou a resposta do sorteado: todos ganham pontos, menos o sorteado.</span></li>
+            <li><span class="pts">+1 pt</span><span><span class="m-who">Jogador da Rodada</span>Para cada jogador que acertou a resposta dele.</span></li>
+          </ul>
+
+          <h4>Variações</h4>
+          <p>"Vitória em dupla" não se aplica; "Partida longa" e "Corrida de pontos" funcionam normalmente.</p>
+
+          <div class="m-example">
+            <strong>Exemplo:</strong> na rodada do Japão, jogando sem duplas, Marina e Bernardo levam 2 pontos cada, Rafa leva 2 e Ana, Lucas e Giulia ficam com 0 (pois não há ponto de sintonia).
+          </div>
         </section>
 
         <section class="m-card">
